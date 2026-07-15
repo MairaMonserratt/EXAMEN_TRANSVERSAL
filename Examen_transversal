@@ -1,0 +1,97 @@
+def leer_opcion():
+    while True:
+        try:
+            op = int(input("Ingrese opción: "))
+            if 1 <= op <= 6: return op
+        except: pass
+        print("Debe seleccionar una opción válida")
+
+def buscar_codigo(codigo, peliculas):
+    return codigo.upper() in peliculas
+
+def cupos_genero(genero, peliculas, cartelera):
+    total = sum(cartelera[c][1] for c,p in peliculas.items() if p[1].lower()==genero.lower())
+    print(f"El total de cupos disponibles es: {total}")
+
+def busqueda_precio(p_min, p_max, peliculas, cartelera):
+    res = [f"{peliculas[c][0]}--{c}" for c in cartelera if p_min<=cartelera[c][0]<=p_max and cartelera[c][1]>0]
+    print(f"Las películas encontradas son: {sorted(res)}" if res else "No hay películas en ese rango de precios.")
+
+def actualizar_precio(codigo, nuevo_precio, cartelera):
+    codigo = codigo.upper()
+    if buscar_codigo(codigo, cartelera):
+        cartelera[codigo][0] = nuevo_precio
+        return True
+    return False
+
+def validar_str(dato): return dato.strip()!= ""
+def validar_ent_pos(dato): return isinstance(dato,int) and dato>0
+def validar_ent_nn(dato): return isinstance(dato,int) and dato>=0
+def validar_clas(dato): return dato.upper() in ['A','B','C']
+def validar_3d(dato): return dato.lower() in ['s','n']
+
+def agregar_pelicula(codigo,titulo,genero,duracion,clasificacion,idioma,es_3d,precio,cupos,peliculas,cartelera):
+    codigo=codigo.upper()
+    if buscar_codigo(codigo,peliculas): return False
+    peliculas[codigo]=[titulo,genero,duracion,clasificacion,idioma,es_3d]
+    cartelera[codigo]=[precio,cupos]
+    return True
+
+def eliminar_pelicula(codigo,peliculas,cartelera):
+    codigo=codigo.upper()
+    if buscar_codigo(codigo,peliculas):
+        del peliculas[codigo]; del cartelera[codigo]
+        return True
+    return False
+
+def main():
+    peliculas={'P101':['Luz de Otoño','drama',110,'B','Español',False],'P102':['Noche Neón','acción',125,'C','Ingles',True],'P103':['Planeta Agua','documental',90,'A','Español',False],'P104':['Risa Total','comedia',105,'A','Español',True],'P105':['Código Zero','thriller',118,'C','Ingles',True],'P106':['Viaje Lunar','ciencia ficción',132,'B','Ingles',False]}
+    cartelera={'P101':[5990,40],'P102':[7990,0],'P103':[4990,25],'P104':[6990,12],'P105':[8990,8],'P106':[7490,3]}
+
+    while True:
+        print("\n========== MENÚ PRINCIPAL ==========\n1. Cupos por género\n2. Búsqueda de películas por rango de precio\n3. Actualizar precio de película\n4. Agregar película\n5. Eliminar película\n6. Salir\n=====================================")
+        op=leer_opcion()
+
+        if op==1:
+            cupos_genero(input("Ingrese género a consultar: "),peliculas,cartelera)
+        elif op==2:
+            while True:
+                try: p_min=int(input("Ingrese precio mínimo: ")); p_max=int(input("Ingrese precio máximo: "))
+                except: print("Debe ingresar valores enteros"); continue
+                if p_min>=0 and p_max>=p_min: break
+            busqueda_precio(p_min,p_max,peliculas,cartelera)
+        elif op==3:
+            while True:
+                cod=input("Ingrese código de película: ")
+                try: precio=int(input("Ingrese nuevo precio: "))
+                except: print("Debe ingresar entero positivo"); continue
+                if actualizar_precio(cod,precio,cartelera): print("Precio actualizado")
+                else: print("El código no existe")
+                if input("¿Desea actualizar otro precio (s/n)?: ").lower()=='n': break
+        elif op==4:
+            cod=input("Ingrese código de película: ")
+            if not validar_str(cod): print("Código inválido"); continue
+            titulo=input("Ingrese título: ")
+            genero=input("Ingrese género: ")
+            try: dur=int(input("Ingrese duración (minutos): "))
+            except: print("Duración inválida"); continue
+            clas=input("Ingrese clasificación: ")
+            idioma=input("Ingrese idioma: ")
+            es3d=input("¿Es 3D? (s/n): ")
+            try: precio=int(input("Ingrese precio: ")); cupos=int(input("Ingrese cupos: "))
+            except: print("Precio o cupos inválidos"); continue
+
+            if not all([validar_str(titulo),validar_str(genero),validar_ent_pos(dur),validar_clas(clas),validar_str(idioma),validar_3d(es3d),validar_ent_pos(precio),validar_ent_nn(cupos)]):
+                print("Datos inválidos"); continue
+
+            if agregar_pelicula(cod,titulo,genero,dur,clas.upper(),idioma,es3d.lower()=='s',precio,cupos,peliculas,cartelera):
+                print("Película agregada")
+            else: print("El código ya existe")
+        elif op==5:
+            cod=input("Ingrese código de película: ")
+            print("Película eliminada" if eliminar_pelicula(cod,peliculas,cartelera) else "El código no existe")
+        else:
+            print("Programa finalizado.")
+            break
+
+main()
